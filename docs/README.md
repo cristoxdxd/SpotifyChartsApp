@@ -1,15 +1,18 @@
 # <img src="../public/Spotify.png" width="45" align="left"> Spotify Dashboard App
 
-## Graphics
+## Project Diagram
+
+![SpotifyDashboardDiagram](https://github.com/cristoxdxd/SpotifyChartsApp/assets/82126489/06273407-5fa0-4819-b07d-b615676571e6)
+
 
 ## Features
 
-- [x] Data Analysis
-- [x] Data Visualization (interactive graphics and tables)
-- [x] Data Export
-- [x] Search and Filter Data
-- [x] Dashboard
-- [x] Download Reports (PDF and Excel)
+- [ ] Data Analysis
+- [ ] Data Visualization (interactive graphics and tables)
+- [ ] Data Export
+- [ ] Search and Filter Data
+- [ ] Dashboard
+- [ ] Download Reports (PDF and Excel)
 
 ## Built with
 
