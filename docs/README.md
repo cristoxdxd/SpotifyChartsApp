@@ -1,4 +1,4 @@
-# `<img src="../public/icon.png" width="45" align="left">` Spotify Dashboard App
+# Spotify Dashboard App
 
 ## Project Diagram
 
