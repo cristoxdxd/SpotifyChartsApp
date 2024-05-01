@@ -1,2 +1,2 @@
-from .utils.data import read_data, top_10_year
-from .utils.plots import create_spider_plot, summary_plots
+from .utils.data import read_data, top_10_year, top_5_artists, genres
+from .utils.plots import summary_plots, create_spider_plot, create_stacked_bar_plot, create_scatter_plot, create_bubble_plot, create_genre_plot
