@@ -1,5 +1,8 @@
 import streamlit as st
-from src import read_data, top_10_year, top_5_artists, genres, summary_plots, create_spider_plot, create_stacked_bar_plot, create_scatter_plot, create_bubble_plot, create_genre_plot
+from src import read_data, top_10_tracks, top_10_year, top_5_artists, top_5_artists_year, summary_plots, data_year, \
+    create_spider_plot, create_stacked_bar_plot, create_scatter_plot, \
+    create_bubble_plot, create_genre_plot, \
+    generate_pdf_report, generate_excel_report
 
 SELECT_YEAR_PROMPT = 'Select a year:'
 
@@ -36,9 +39,12 @@ def run():
 
     with menu_data[1]:
         st.title('Top 10 Tracks')
-        st.write('This page shows the top 10 tracks for each year from 2000 to 2019.')
-        year = st.selectbox(SELECT_YEAR_PROMPT, list(range(1999, 2020)), index=None, key='top_10_tracks')
-        if year:
+        year = st.selectbox(SELECT_YEAR_PROMPT, ['All'] + list(range(1999, 2020)), key='top_10_tracks')
+        if year == 'All':
+            st.write(top_10_tracks())
+            st.divider()
+            st.write(create_spider_plot(year, all_tracks=True))
+        elif year:
             st.write(top_10_year(year))
             st.divider()
             st.write(create_spider_plot(year))
@@ -46,9 +52,13 @@ def run():
     with menu_data[2]:
         st.title('Top 5 Artists')
         st.write('This page shows the top 5 artists for each year from 2000 to 2019.')
-        year = st.selectbox(SELECT_YEAR_PROMPT, list(range(1999, 2020)), index=None, key='top_5_artists')
-        if year:
-            st.write(top_5_artists(year))
+        year = st.selectbox(SELECT_YEAR_PROMPT, ['All'] + list(range(1999, 2020)), key='top_5_artists')
+        if year == 'All':
+            st.write(top_5_artists())
+            st.divider()
+            st.write(create_stacked_bar_plot(None, all_time=True))
+        elif year:
+            st.write(top_5_artists_year(year))
             st.divider()
             st.write(create_stacked_bar_plot(year))
 
@@ -57,8 +67,13 @@ def run():
         create_genre_plot()
         st.markdown("<h2 style='text-align: center;'>Play with Filters</h2>", unsafe_allow_html=True)
         year = st.selectbox(SELECT_YEAR_PROMPT, list(range(1998, 2021)), index=None, key='genres')
+        x = st.selectbox('X-axis', ["danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"], index=0)
+        y = st.selectbox('Y-axis', ["danceability", "energy", "loudness", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"], index=2)
+        if x == y:
+            st.error("Please select different values for X-axis and Y-axis.")
+            st.stop()
         if year:
-            create_bubble_plot(year)
+            create_bubble_plot(year, x, y)
 
     with menu_data[4]:
         st.title('Analysis')
@@ -68,11 +83,15 @@ def run():
     with menu_data[5]:
         st.title('Reports')
         st.write('This page shows the reports of the Spotify dataset.')
-        year = st.selectbox(SELECT_YEAR_PROMPT, list(range(1998, 2021)), index=None, key='reports')
-        if year:
-            st.download_button('Download CSV', 'data/spotify-charts.csv', 'Click here to download the Spotify dataset as a CSV file.')
-            st.download_button('Download Excel', 'data/spotify-charts.xlxs', 'Click here to download the Spotify dataset as an Excel file.')
-            st.download_button('Download PDF', 'data/spotify-charts.pdf', 'Click here to download the Spotify dataset as a PDF file.')
+        year = st.selectbox(SELECT_YEAR_PROMPT, ['All'] + list(range(1998, 2021)), index=None, key='reports')
+        if year == 'All':
+            st.download_button('Download CSV', read_data().to_csv(index=False), 'SpotifyData_CSV.csv')
+            # st.download_button('Download Excel', generate_excel_report(), 'Spotify_Report_EXCEL.xlsx')
+            st.download_button('Download PDF', generate_pdf_report(), 'Spotify_Full_Report_2000_2019.pdf')
+        if year is not None and year != 'All':
+            st.download_button('Download CSV', data_year(year), f'SpotifyData_{year}_CSV.csv')
+            # st.download_button('Download Excel', generate_excel_report(str(year)), f'Spotify_Report_{year}_EXCEL.xlsx')
+            st.download_button('Download PDF', generate_pdf_report(str(year)), f'Spotify_Report_{year}_PDF.pdf')
 
 if __name__ == "__main__":
     run()

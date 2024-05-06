@@ -1,10 +1,11 @@
+import io
 import streamlit as st
 import pandas as pd
 import random
 import altair as alt
 import plotly.graph_objects as go
 import plotly.express as px
-from .data import read_data, top_10_year, top_5_artists, genres
+from .data import read_data, top_10_tracks, top_10_year, top_5_artists, top_5_artists_year, genres
 
 def summary_plots(explicit: bool):
     base = read_data()
@@ -36,19 +37,22 @@ def summary_plots(explicit: bool):
 
         st.altair_chart(fig, use_container_width=True)
 
-def create_spider_plot(year: int):
-    data_10 = top_10_year(year)
+def create_spider_plot(year: int, all_tracks: bool = False):
+    if all_tracks:
+        data = top_10_tracks()
+    else:
+        data = top_10_year(year)
 
-    df_top_10 = pd.DataFrame(data_10)
-    df_top_10.columns = ['song', 'artist', 'popularity', 'danceability', 'energy', 'loudness', 'liveness', 'tempo']
+    df_top = pd.DataFrame(data)
+    df_top.columns = ['song', 'artist', 'popularity', 'danceability', 'energy', 'loudness', 'liveness', 'tempo']
 
-    df_top_10['danceability'] = df_top_10['danceability'] * 100
-    df_top_10['energy'] = df_top_10['energy'] * 100
-    df_top_10['liveness'] = df_top_10['liveness'] * 100
-    df_top_10['loudness'] = df_top_10['loudness'] * -5
-    df_top_10['tempo'] = df_top_10['tempo'] / 2.1
+    df_top['danceability'] = df_top['danceability'] * 100
+    df_top['energy'] = df_top['energy'] * 100
+    df_top['liveness'] = df_top['liveness'] * 100
+    df_top['loudness'] = df_top['loudness'] * -5
+    df_top['tempo'] = df_top['tempo'] / 2.1
     
-    for index, track in df_top_10.iterrows():
+    for index, track in df_top.iterrows():
         attributes = ['popularity', 'danceability', 'energy', 'loudness', 'liveness', 'tempo']
         track_features = track[attributes]
         color = f"rgba({random.randint(0, 255)}, {random.randint(0, 255)}, {random.randint(0, 255)}, 0.3)"
@@ -60,12 +64,15 @@ def create_spider_plot(year: int):
             fillcolor=color
             ))
         
-        st.markdown(f"<h2 style='text-align: center;'>{track['song']} by {track['artist']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='text-align: center;'>{track['song']} by <i>{track['artist']}<i></h2>", unsafe_allow_html=True)
         st.plotly_chart(fig, use_container_width=True)
         st.divider()
 
-def create_stacked_bar_plot(year: int):
-    data_5 = top_5_artists(year)
+def create_stacked_bar_plot(year: int, all_time: bool = False):
+    if all_time:
+        data_5 = top_5_artists()
+    else:
+        data_5 = top_5_artists_year(year)
 
     df_top_5 = pd.DataFrame(data_5)
     df_top_5.columns = ['artist', 'popularity', 'danceability', 'energy', 'loudness', 'liveness', 'tempo']
@@ -105,13 +112,48 @@ def create_genre_plot():
 
     st.plotly_chart(fig, use_container_width=True)
 
-def create_bubble_plot(year: int):
+def create_bubble_plot(year: int, x: str, y: str):
     base = read_data()
     base['genre'] = base['genre'].str.split(',')
     base = base.explode('genre')
     
-    fig = px.scatter(base.query(f"year=={year}"), x="danceability", y="loudness",
+    fig = px.scatter(base.query(f"year=={year}"), x=x, y=y,
                      size="popularity", color="genre",
                      hover_name="song", log_x=True, size_max=60)
     
     st.plotly_chart(fig, use_container_width=True)
+
+def create_spider_plots_pdf(year: int = 0, all_tracks: bool = False):
+    if all_tracks:
+        data = top_10_tracks()
+    else:
+        data = top_10_year(year)
+
+    df_top = pd.DataFrame(data)
+    df_top.columns = ['song', 'artist', 'popularity', 'danceability', 'energy', 'loudness', 'liveness', 'tempo']
+
+    df_top['danceability'] = df_top['danceability'] * 100
+    df_top['energy'] = df_top['energy'] * 100
+    df_top['liveness'] = df_top['liveness'] * 100
+    df_top['loudness'] = df_top['loudness'] * -5
+    df_top['tempo'] = df_top['tempo'] / 2.1
+
+    images = []
+    
+    for index, track in df_top.iterrows():
+        attributes = ['popularity', 'danceability', 'energy', 'loudness', 'liveness', 'tempo']
+        track_features = track[attributes]
+        color = f"rgba({random.randint(0, 255)}, {random.randint(0, 255)}, {random.randint(0, 255)}, 0.3)"
+
+        fig = go.Figure(data=go.Scatterpolar(
+            r=track_features,
+            theta=attributes,
+            fill='toself',
+            fillcolor=color
+            ))
+        
+        image_data = fig.to_image(format="png", engine="kaleido")
+        image = io.BytesIO(image_data)
+        images.append(image)
+    
+    return images
