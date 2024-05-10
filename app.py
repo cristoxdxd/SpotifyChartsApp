@@ -93,8 +93,8 @@ def run():
             wb = generate_excel_report(year)
             excel_file = download_excel_report(wb)
             st.download_button('Download Excel', excel_file, f'Spotify_Report_{year}_EXCEL.xlsx', mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            
-            st.download_button('Download PDF', generate_pdf_report(str(year)), f'Spotify_Report_{year}_PDF.pdf')
+            pdf_file = generate_pdf_report(str(year))
+            st.download_button('Download PDF', pdf_file, f'Spotify_Report_{year}_PDF.pdf')
 
 if __name__ == "__main__":
     run()
