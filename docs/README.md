@@ -6,12 +6,13 @@
 
 ## Features
 
-- [ ] Data Analysis
-- [ ] Data Visualization (interactive graphics and tables)
-- [ ] Data Export
-- [ ] Search and Filter Data
-- [ ] Dashboard
-- [ ] Download Reports (PDF and Excel)
+- [X] Data Analysis
+- [X] Data Visualization (interactive graphics and tables)
+- [X] Data Export
+- [X] Search and Filter Data
+- [X] Dashboard
+- [X] Download Reports (PDF)
+- [ ] Download Reports (Excel)
 
 ## Built with
 
