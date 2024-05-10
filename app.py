@@ -2,7 +2,7 @@ import streamlit as st
 from src import read_data, top_10_tracks, top_10_year, top_5_artists, top_5_artists_year, summary_plots, data_year, \
     create_spider_plot, create_stacked_bar_plot, create_scatter_plot, \
     create_bubble_plot, create_genre_plot, \
-    generate_pdf_report, generate_excel_report
+    generate_pdf_report, generate_excel_report, download_excel_report
 
 SELECT_YEAR_PROMPT = 'Select a year:'
 
@@ -90,7 +90,10 @@ def run():
             st.download_button('Download PDF', generate_pdf_report(), 'Spotify_Full_Report_2000_2019.pdf')
         if year is not None and year != 'All':
             st.download_button('Download CSV', data_year(year), f'SpotifyData_{year}_CSV.csv')
-            # st.download_button('Download Excel', generate_excel_report(str(year)), f'Spotify_Report_{year}_EXCEL.xlsx')
+            wb = generate_excel_report(year)
+            excel_file = download_excel_report(wb)
+            st.download_button('Download Excel', excel_file, f'Spotify_Report_{year}_EXCEL.xlsx', mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            
             st.download_button('Download PDF', generate_pdf_report(str(year)), f'Spotify_Report_{year}_PDF.pdf')
 
 if __name__ == "__main__":
