@@ -59,15 +59,22 @@ def generate_pdf_report(year=''):
     if year:
         pdf.set_font(FONT, 'B', 16)
         pdf.header(f'Top 10 Songs of the Year {year}')
-        images = create_spider_plots_pdf(int(year))
-        for image in images:
-            pdf.image(image.getvalue(), w=200, h=200)
+        for index in range(10):
+            pdf.image(f"images/top10_{year}_{index}.png", w=200)
+        pdf.add_page()
+        pdf.header(f'Top 5 Artists of the Year {year}')
+        pdf.image(f"images/top5_{year}.png", w=170)
     else:
         pdf.set_font(FONT, 'B', 16)
+        pdf.header('Summary Tracks by years')
+        pdf.image("images/summary.png", w=170)
+        pdf.add_page()
         pdf.header('Top 10 Songs of All Time')
-        images = create_spider_plots_pdf(all_tracks=True)
-        for image in images:
-            pdf.image(image.getvalue(), w=200, h=200)
+        for index in range(10):
+            pdf.image(f"images/top10_{index}.png", w=200)
+        pdf.add_page()
+        pdf.header('Top 5 Artists of All Time')
+        pdf.image("images/top5.png", w=170)
     
     return pdf.output(dest='S').encode('latin-1')
 
