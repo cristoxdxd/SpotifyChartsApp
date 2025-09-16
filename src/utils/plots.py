@@ -20,9 +20,15 @@ def summary_plots(explicit: bool):
         df_explicit = base.groupby(['year', 'explicit']).size().reset_index(name='count')
 
         fig = alt.Chart(df_explicit).mark_bar().encode(
-            x=YEAR_AXIS,
-            y=COUNT_AXIS,
-            color='explicit:N'
+            x=alt.X(YEAR_AXIS, title='Year'),
+            y=alt.Y(COUNT_AXIS, title='Number of Tracks'),
+            color=alt.Color('explicit:N', 
+                          scale=alt.Scale(domain=[True, False], range=['#ff6b6b', '#4ecdc4']),
+                          legend=alt.Legend(title="Explicit Content"))
+        ).properties(
+            width=600,
+            height=400,
+            title='Number of Tracks per Year (by Explicit Content)'
         )
 
         st.altair_chart(fig, use_container_width=True)    
@@ -30,9 +36,14 @@ def summary_plots(explicit: bool):
         df_count = pd.DataFrame(base['year'].value_counts()).reset_index()
         df_count.columns = ['year', 'count']
 
-        fig = alt.Chart(df_count).mark_bar().encode(
-            x=YEAR_AXIS,
-            y=COUNT_AXIS
+        fig = alt.Chart(df_count).mark_bar(color='#1DB954').encode(
+            x=alt.X(YEAR_AXIS, title='Year'),
+            y=alt.Y(COUNT_AXIS, title='Number of Tracks'),
+            tooltip=['year:O', 'count:Q']
+        ).properties(
+            width=600,
+            height=400,
+            title='Number of Tracks per Year'
         )
 
         st.altair_chart(fig, use_container_width=True)
@@ -96,19 +107,56 @@ def create_stacked_bar_plot(year: int, all_time: bool = False):
 def create_scatter_plot():
     base = read_data()
 
-    fig = alt.Chart(base).mark_circle().encode(
-        x='danceability',
-        y='loudness',
-        color='year',
-        size='popularity'
-    )
+    fig = alt.Chart(base).mark_circle(
+        size=60,
+        opacity=0.7
+    ).encode(
+        x=alt.X('danceability:Q', title='Danceability', scale=alt.Scale(domain=[0, 1])),
+        y=alt.Y('loudness:Q', title='Loudness (dB)'),
+        color=alt.Color('year:O', 
+                       scale=alt.Scale(scheme='viridis'),
+                       legend=alt.Legend(title="Year")),
+        size=alt.Size('popularity:Q', 
+                     scale=alt.Scale(range=[20, 200]),
+                     legend=alt.Legend(title="Popularity")),
+        tooltip=['song:N', 'artist:N', 'year:O', 'danceability:Q', 'loudness:Q', 'popularity:Q']
+    ).properties(
+        width=700,
+        height=450,
+        title='Audio Features Correlation: Danceability vs Loudness (sized by Popularity, colored by Year)'
+    ).interactive()
 
     st.altair_chart(fig, use_container_width=True)
 
 def create_genre_plot():
     base = genres()
 
-    fig = px.bar(base, x=base.index, y='count', labels={'x': 'Genre', 'y': 'Count'})
+    # Create a more informative bar chart
+    genre_df = pd.DataFrame({'genre': base.index, 'count': base.values})
+    
+    # Take top 15 genres for better readability
+    genre_df = genre_df.head(15)
+
+    fig = px.bar(
+        genre_df, 
+        x='genre', 
+        y='count', 
+        labels={'genre': 'Genre', 'count': 'Number of Tracks'},
+        title='Top 15 Most Popular Genres',
+        color='count',
+        color_continuous_scale='viridis'
+    )
+    
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        height=500,
+        showlegend=False
+    )
+    
+    fig.update_traces(
+        texttemplate='%{y}',
+        textposition='outside'
+    )
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -117,9 +165,41 @@ def create_bubble_plot(year: int, x: str, y: str):
     base['genre'] = base['genre'].str.split(',')
     base = base.explode('genre')
     
-    fig = px.scatter(base.query(f"year=={year}"), x=x, y=y,
-                     size="popularity", color="genre",
-                     hover_name="song", log_x=True, size_max=60)
+    # Filter by year and clean data
+    year_data = base.query(f"year=={year}").copy()
+    year_data['genre'] = year_data['genre'].str.strip()
+    
+    # Take top 10 genres for better readability
+    top_genres = year_data['genre'].value_counts().head(10).index
+    year_data = year_data[year_data['genre'].isin(top_genres)]
+    
+    fig = px.scatter(
+        year_data, 
+        x=x, 
+        y=y,
+        size="popularity", 
+        color="genre",
+        hover_name="song",
+        hover_data={
+            'artist': True,
+            'popularity': True,
+            x: ':.3f',
+            y: ':.3f'
+        },
+        size_max=60,
+        title=f'Audio Features Analysis for {year}: {x.title()} vs {y.title()}'
+    )
+    
+    fig.update_layout(
+        height=500,
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.01
+        )
+    )
     
     st.plotly_chart(fig, use_container_width=True)
 
